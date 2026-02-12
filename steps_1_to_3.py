@@ -2,8 +2,7 @@
 # Step 1: Identify a question that the dataset can answer
 #
 # College Completion Dataset:
-# Assuming Flagship Universities are the best, can we use awards per 100
-# graduates to determine what schools are flagship?
+# Is there a correlation between grad_100 and the whether a college can be considered "high_award"?
 #
 # Job Placement Dataset:
 # Is there a correlation between performance on standardized tests and
@@ -154,7 +153,7 @@ print(f"Prevalence of High Award Status: {prevalence:.2f}")
 
 # %%
 # Splitting the dataset into Train and Test sets
-Train, Test = train_test_split(COLLEGE_dt, train_size=2700, stratify=COLLEGE_dt.high_award)
+Train, Test = train_test_split(COLLEGE_dt, train_size=0.65, stratify=COLLEGE_dt.high_award)
 print(Train.shape)
 print(Test.shape)
 
