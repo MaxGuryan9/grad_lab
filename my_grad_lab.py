@@ -154,8 +154,7 @@ cols_by_index = COLLEGE.columns[34:63]
 
 cols_to_drop = [c for c in cols_by_name + list(cols_by_index) if c in COLLEGE.columns]
 
-if cols_to_drop:
-    COLLEGE_dt = COLLEGE.drop(columns=cols_to_drop)
+COLLEGE_dt = COLLEGE.drop(columns=cols_to_drop)
 
 COLLEGE_dt.info()
 
@@ -317,7 +316,7 @@ def prepare_and_split_college(
     one_hot_cols=None,
     scale_cols=None,
     drop_cols_by_name=None,
-    drop_col_index_range=(),
+    drop_col_index_range=(0,0),
     train_size=0.4,
     val_size_of_remainder=0.5,
     random_state=1984,
@@ -390,7 +389,7 @@ def knn_grid_search(
     train_df,
     val_df,
     target_col= None,
-    k_values= range(),
+    k_values= None,
     thresholds=(),
 ):
     """
@@ -452,7 +451,7 @@ COLLEGE["high_award"] = (
 # %%
 train_df, test_df, val_df = prepare_and_split_college(
     df=COLLEGE,
-    target_col="high_award",
+    target_col="high_award_1",
     cat_cols=["state", "level", "control", "high_award"],
     one_hot_cols=["level", "control", "high_award"],
     scale_cols=[
@@ -493,9 +492,11 @@ train_df, test_df, val_df = prepare_and_split_college(
         "awards_per_state_value",
         "awards_per_natl_value",
         "index",
-        "chronname"
-    ],
-    target_col="high_award_1",
+        "chronname",
+        "similar",
+        "counted_pct",
+        "nicknames"
+    ]
 )
 
 results_df = knn_grid_search(
@@ -510,24 +511,22 @@ results_df = knn_grid_search(
 )
 
 
-
-
-
 # %%
-# Function to determine the "k" with the best accuracy
-def chooseK(k, X_train, y_train, X_test, y_test):
-    random.seed(1)
-    print("calculating... ", k, "k")    # I'll include this so you can see the progress of the function as it runs
-    class_knn = KNeighborsClassifier(n_neighbors=k)
-    class_knn.fit(X_train, y_train)
-    
-    # calculate accuracy
-    accu = class_knn.score(X_test, y_test)
-    return accu
+results_df.head(10)
+results_df.sort_values(by=['accuracy'], ascending=False)
 
+# %% [markdown]
+# The best combination is k = 21 and threshold = 0.25, which gives an accuracy of 0.914.
+# %% [markdown]
+# 7. How well does the model perform? Did the interaction 
+# of the adjusted thresholds and k values help the model? Why or why not?
+# 
+# The model performs well, with the best combination of k and threshold giving 
+# an accuracy of 0.914. The interaction of the adjusted thresholds and k values didn't really help the model
+# because the overall accruacy didn't change much from our original model with k = 3 and threshold = 0.5.
+# However, I think most of that was just luck. In a normal situation, this interaction would be necessary 
+# as it allows us to find the optimal combination that maximized accuracy on the validation set. 
+# By testing different k values, we were able to find the right balance between bias and variance, 
+# while adjusting the threshold allowed us to optimize the classification decision boundary for our 
+# specific dataset and target variable.
 # %%
-test = pd.DataFrame({'k':list(range(1,22,2)), 
-                     'accu':[chooseK(x, X_train, y_train, X_test, y_test) for x in list(range(1, 22, 2))]})
-
-test = test.sort_values(by=['accu'], ascending=False)
-test
