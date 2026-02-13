@@ -529,4 +529,88 @@ results_df.sort_values(by=['accuracy'], ascending=False)
 # By testing different k values, we were able to find the right balance between bias and variance, 
 # while adjusting the threshold allowed us to optimize the classification decision boundary for our 
 # specific dataset and target variable.
+# %% [Markdown]
+#8. Choose another variable as the target in the dataset and 
+# create another kNN model using the two functions you created in
+# step 7. 
+
 # %%
+COLLEGE = pd.read_csv("cc_institution_details.csv")
+high_threshold = COLLEGE["grad_100_value"].quantile(0.75)
+COLLEGE["high_grad_100"] = (
+    COLLEGE["grad_100_value"] > high_threshold
+).astype(int)
+
+# %%
+
+train_df, test_df, val_df = prepare_and_split_college(
+    df=COLLEGE,
+    target_col="high_grad_100_1",
+    cat_cols=["state", "level", "control", "high_grad_100"],
+    one_hot_cols=["level", "control", "high_grad_100"],
+    scale_cols=[
+        "aid_percentile",
+        "aid_value",
+        "endow_value",
+        "endow_percentile",
+        "grad_100_value",
+        "grad_100_percentile",
+        "grad_150_value",
+        "grad_150_percentile",
+        "exp_award_percentile",
+        "exp_award_value",
+        "exp_award_state_value",
+        "exp_award_natl_value",
+        "ft_pct",
+        "fte_value",
+        "fte_percentile",
+        "med_sat_value",
+        "med_sat_percentile",
+        "student_count",
+        "awards_per_value",
+        "awards_per_state_value",
+        "awards_per_natl_value"
+    ],
+    drop_cols_by_name=[
+        "site",
+        "long_x",
+        "lat_y",
+        "med_sat_percentile",
+        "med_sat_value",
+        "endow_value",
+        "basic",
+        "endow_percentile",
+        "unitid",
+        "city",
+        "hbcu",
+        "state",
+        "index",
+        "chronname",
+        "similar",
+        "counted_pct",
+        "nicknames",
+        "flagship"
+    ]
+)
+
+results_df = knn_grid_search(
+    train_df=train_df,
+    val_df=val_df,
+    target_col="high_grad_100_1",
+    k_values=range(1, 22, 2),
+    thresholds=(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 
+        0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 
+        0.7, 0.75, 0.8, 0.85, 0.9, 0.95
+        )
+)
+
+
+# %%
+results_df.sort_values(by=['accuracy'], ascending=False)
+
+
+
+# %% [markdown]
+# The best combination is k = 5 and threshold = 0.75, which gives an accuracy of 0.913. The question is switched to predict
+# which schools are in the top 25% of graduation rates within 100% of normal time. This will help people decide which schools
+# have been able to attract students that are more likely to finish school on time.  
